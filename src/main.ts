@@ -1,5 +1,7 @@
 // import { getFpsCallback, Simulation } from "@red_j/webgl-fluid-sim";
 // import { getSettings, setSettings } from "./controls";
+import { Simulation } from "./lib/classes/Simulation";
+import { getFpsCallback } from "./lib/utils/utils";
 import "./style.css"
 
 const canvas = document.getElementById("main-canvas") as HTMLCanvasElement;
@@ -24,3 +26,18 @@ addEventListener('resize', () => {
 if (!canvas) {
     throw new Error('No canvas found')
 }
+
+const getFPS = getFpsCallback()
+
+const simulation = new Simulation(canvas, {});
+let prev = performance.now();
+const render = (now: number) => {
+    const fps = getFPS();
+    console.log("FPS: ", fps)
+
+    prev = now;
+    simulation.step();
+
+    requestAnimationFrame(render);
+}
+requestAnimationFrame(render);
