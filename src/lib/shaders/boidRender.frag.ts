@@ -1,9 +1,0 @@
-export const boidRenderFrag = /*glsl*/ `#version 300 es
-precision highp float;
-
-out vec4 fragColor;
-
-void main() {
-    fragColor = vec4(1.0, 1.0, 1.0, 1.0); // White dots for now
-}
-`;

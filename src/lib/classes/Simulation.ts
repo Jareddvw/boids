@@ -1,6 +1,8 @@
-import { BoidBuffer } from "../gl/BoidBuffer";
 import { Renderer } from "../gl/Renderer";
 import { SimulationSettings } from "../gl/types";
+import { colors } from "../utils/utils";
+
+
 
 export class Simulation {
     private texelDims = [0, 0];
@@ -11,7 +13,6 @@ export class Simulation {
     private settings: SimulationSettings;
     private imageTexture: WebGLTexture | null = null;
     private deltaT = 1 / 60;
-    private boidBuffer: BoidBuffer;
 
     constructor(canvas: HTMLCanvasElement, settings: Partial<SimulationSettings> = {}) {
         const gl = canvas.getContext('webgl2');
@@ -26,59 +27,79 @@ export class Simulation {
         };
 
         this.settings = { ...defaultSettings, ...settings };
-        this.boidBuffer = new BoidBuffer(gl, this.settings.numBoids || 1000);
         this.renderer = new Renderer(gl);
         this.resetAll();
     }
 
     public step() {
-        this.updateBoids();
         this.drawBoids();
+        this.updateVelocities();
+        this.updatePositions();
+    }
+
+    private updateVelocities() {
+        const { renderer } = this;
+        const { updateVelocityProgram } = renderer.getPrograms();
+        const { boidsFBO, velocitiesFBO } = renderer.getFBOs();
+
+        const boidDensity = 0.001
+
+        updateVelocityProgram.use();
+        updateVelocityProgram.setUniforms({
+            positions: boidsFBO.readFBO.texture,
+            velocities: velocitiesFBO.readFBO.texture,
+            boidCount: this.gl.canvas.width * this.gl.canvas.height * boidDensity,
+            canvasSize: [this.gl.canvas.width, this.gl.canvas.height],
+            separationWeight: 1,
+            alignmentWeight: 1,
+            cohesionWeight: 1,
+            sightRadius: 0.01,
+        })
+        renderer.drawQuad(velocitiesFBO.writeFBO)
+        velocitiesFBO.swap()
+    }
+
+    private updatePositions() {
+        const { renderer } = this;
+        const { advectBoidsProgram } = renderer.getPrograms();
+        const { boidsFBO, velocitiesFBO } = renderer.getFBOs();
+        advectBoidsProgram.use();
+        advectBoidsProgram.setUniforms({
+            velocity: velocitiesFBO.readFBO.texture,
+            quantity: boidsFBO.readFBO.texture,
+            dt: this.deltaT,
+            gridScale: 1,
+            texelDims: this.texelDims,
+        })
+        renderer.drawQuad(boidsFBO.writeFBO)
+        boidsFBO.swap()
     }
 
     resetBoids() {
         // reset the boids
-    }
-
-    private updateBoids() {
-        const { gl, boidBuffer } = this;
-        const { updateProgram } = this.renderer.getPrograms();
-        
-        updateProgram.use();
-        
-        // Bind source buffers (current positions and velocities)
-        boidBuffer.bindSourceBuffers(updateProgram);
-        
-        // Bind destination buffers for transform feedback
-        boidBuffer.bindDestBuffers();
-        
-        // Set uniforms
-        updateProgram.setFloat('deltaTime', this.deltaT);
-        // ... other uniforms ...
-        
-        // Perform transform feedback
-        boidBuffer.beginTransformFeedback();
-        gl.drawArrays(gl.POINTS, 0, this.settings.numBoids || 1000);
-        boidBuffer.endTransformFeedback();
-        
-        // Swap buffers for next frame
-        boidBuffer.swap();
+        const { renderer } = this;
+        const { boidsFBO } = renderer.getFBOs();
+        const { resetBoidsProgram } = renderer.getPrograms();
+        resetBoidsProgram.use()
+        renderer.drawQuad(boidsFBO.readFBO)
     }
 
     private drawBoids() {
-        const { gl, boidBuffer } = this;
-        const { renderProgram } = this.renderer.getPrograms();
-        
-        renderProgram.use();
-        
-        // Use current position buffer for rendering
-        gl.bindBuffer(gl.ARRAY_BUFFER, boidBuffer.getCurrentPositionBuffer());
-        const posLoc = gl.getAttribLocation(renderProgram.getProgram(), 'position');
-        gl.enableVertexAttribArray(posLoc);
-        gl.vertexAttribPointer(posLoc, 4, gl.FLOAT, false, 0, 0);
-        
-        // Draw boids
-        gl.drawArrays(gl.POINTS, 0, this.settings.numBoids || 1000);
+        // draw the boids to the screen
+        const { renderer } = this;
+        const { fillColorProgram, drawBoidsProgram } = renderer.getPrograms();
+        const { boidsFBO } = renderer.getFBOs();
+        fillColorProgram.use()
+        fillColorProgram.setVec4('color', colors.black)
+        renderer.drawQuad(null)
+        renderer.drawBoids(
+            boidsFBO.readFBO.texture,
+            drawBoidsProgram,
+            0,
+            null,
+            0.001,
+            1,
+        )
     }
 
 

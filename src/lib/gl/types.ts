@@ -3,17 +3,18 @@ import { Program } from "./ShaderProgram"
 
 const ShaderTypes = [
     'copyProgram',
+    'updateVelocityProgram',
+    'drawBoidsProgram',
     'fillColorProgram',
-    'renderProgram',
-    'updateProgram',
+    'resetBoidsProgram',
+    'advectBoidsProgram',
 ] as const
 type ShaderType = typeof ShaderTypes[number]
 export type ProgramRecord = { [key in ShaderType]: Program }
 
 export type FBORecord = {
     boidsFBO: DoubleFBO,
+    velocitiesFBO: DoubleFBO,
 }
 
-export type SimulationSettings = {
-    numBoids?: number;
-}
+export type SimulationSettings = {}
