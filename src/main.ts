@@ -1,8 +1,8 @@
-// import { Simulation as FluidSim } from "@red_j/webgl-fluid-sim";
+import { ColorMode, Simulation as FluidSim, ImpulseType } from "@red_j/webgl-fluid-sim";
 import { Simulation } from "./lib/classes/Simulation";
-import { getFpsCallback } from "./lib/utils/utils";
 import { SimulationSettings } from "./lib/gl/types";
-import "./style.css"
+import { getFpsCallback } from "./lib/utils/utils";
+import "./style.css";
 
 const canvas = document.getElementById("main-canvas") as HTMLCanvasElement;
 const fpsCounter = document.getElementById("fpsCounter") as HTMLElement;
@@ -27,6 +27,15 @@ addEventListener('resize', () => {
 
 if (!canvas) {
     throw new Error('No canvas found')
+}
+
+const fluidSim = new FluidSim(canvas)
+fluidSim.updateSettings({
+    colorMode: ColorMode.BlackAndWhite,
+})
+
+const updateFluid = () => {
+    fluidSim.step(0.016)
 }
 
 // gets the nearest square number to a given number
@@ -142,15 +151,67 @@ const render = () => {
     const fps = getFPS();
     fpsCounter.textContent = Math.round(fps).toString();
 
+    updateFluid()
     simulation.step();
 
     animationFrameId = requestAnimationFrame(render);
 };
 requestAnimationFrame(render);
 
+let mouseDown = false;
+canvas.onmouseup = () => {
+    mouseDown = false;
+    fluidSim.updateSettings({externalForces: [
+        {
+            impulseDirection: [0, 0],
+            impulsePosition: [0, 0],
+            impulseRadius: 0,
+            impulseMagnitude: 0,
+            impulseType: ImpulseType.GaussianSplat,
+        }
+    ]})
+}
+
+canvas.onmousedown = () => {
+    mouseDown = true;
+}
+
+const handleFluidMouseMove = (e: MouseEvent) => {
+    if (mouseDown) {
+        const rect = canvas.getBoundingClientRect();
+        const x = (e.clientX - rect.left) / rect.width;
+        const y = 1.0 - (e.clientY - rect.top) / rect.height;
+        
+        // Calculate velocity based on mouse movement
+        const dx = (e.movementX / rect.width);
+        const dy = (-e.movementY / rect.height);
+        const norm = Math.sqrt(dx * dx + dy * dy);
+        const velocity = (norm > 0 ? [dx / norm, dy / norm] : [0, 0]) as [number, number];
+
+        fluidSim.updateSettings({
+            externalForces: [
+                {
+                  "impulseDirection": velocity,
+                  "impulsePosition": [
+                    x, y
+                  ],
+                  "impulseRadius": 0.0001,
+                  "impulseMagnitude": 0.15165441176470706,
+                  "impulseType": 0
+                }
+              ]
+        });
+    }
+}
+
+console.log(fluidSim.getSettings())
+
 canvas.addEventListener('mousemove', (e) => {
-    const x = e.offsetX / canvas.width
-    const y = 1 - e.offsetY / canvas.height
+    handleFluidMouseMove(e);
+    
+    // Update predator position for boids
+    const x = e.offsetX / canvas.width;
+    const y = 1 - e.offsetY / canvas.height;
     simulation.updateSettings({
         predatorPosition: [x, y]
     });

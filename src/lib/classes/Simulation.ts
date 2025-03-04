@@ -1,8 +1,5 @@
 import { Renderer } from "../gl/Renderer";
 import { SimulationSettings } from "../gl/types";
-import { colors } from "../utils/utils";
-
-
 
 export class Simulation {
     private renderer: Renderer;
@@ -57,10 +54,8 @@ export class Simulation {
 
     private drawBoids() {
         const { renderer, settings } = this;
-        const { fillColorProgram, drawBoidsProgram } = renderer.getPrograms();
+        const { drawBoidsProgram } = renderer.getPrograms();
         const { boidsFBO } = renderer.getFBOs();
-        fillColorProgram.use()
-        fillColorProgram.setVec4('color', colors.black)
         renderer.drawQuad(null)
         renderer.drawBoids(
             boidsFBO.readFBO.texture,

@@ -4,6 +4,11 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+dependencies:
+  '@red_j/webgl-fluid-sim':
+    specifier: ^1.0.8
+    version: 1.0.8
+
 devDependencies:
   typescript:
     specifier: ~5.7.2
@@ -238,6 +243,10 @@ packages:
     requiresBuild: true
     dev: true
     optional: true
+
+  /@red_j/webgl-fluid-sim@1.0.8:
+    resolution: {integrity: sha512-T78IRZsxn+hqBmN3oJtJewkq+VwSOlgJ1XvVh2pYAQ0jbHr1xzbBR6mqadYaMTeSeIzuqYpJSfJ5NDOrxpWxYA==}
+    dev: false
 
   /@rollup/rollup-android-arm-eabi@4.34.9:
     resolution: {integrity: sha512-qZdlImWXur0CFakn2BJ2znJOdqYZKiedEPEVNTBrpfPjc/YuTGcaYZcdmNFTkUj3DU0ZM/AElcM8Ybww3xVLzA==}

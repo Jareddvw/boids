@@ -11,5 +11,8 @@
   "devDependencies": {
     "typescript": "~5.7.2",
     "vite": "^6.2.0"
+  },
+  "dependencies": {
+    "@red_j/webgl-fluid-sim": "^1.0.8"
   }
 }
