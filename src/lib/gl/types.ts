@@ -24,5 +24,8 @@ export type SimulationSettings = {
     predatorPosition: [number, number],  
     predatorRadius: number,  
     predatorWeight: number,  
+    wallAvoidanceThreshold: number,
+    wallAvoidanceWeight: number,
     pointSize: number,
+    wrap: boolean, // whether boids wrap around the edges
 }

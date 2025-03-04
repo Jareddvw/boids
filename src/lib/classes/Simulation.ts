@@ -18,15 +18,18 @@ export class Simulation {
         
         // Default settings
         const defaultSettings: SimulationSettings = {
-            numBoids: 10_000,
-            separationWeight: 0.25,
-            alignmentWeight: 0.2,
-            cohesionWeight: 0.2,
+            numBoids: 64,
+            separationWeight: 0.15,
+            alignmentWeight: 0.1,
+            cohesionWeight: 0.15,
             sightRadius: 0.05,
             predatorPosition: [-1, -1],
             predatorRadius: 0.2,
-            predatorWeight: 0.8,
-            pointSize: 2,
+            predatorWeight: 0.1,
+            wallAvoidanceThreshold: 0.15,
+            wallAvoidanceWeight: 0.11,
+            pointSize: 4,
+            wrap: false,
         };
 
         this.settings = { ...defaultSettings, ...settings };
@@ -85,6 +88,9 @@ export class Simulation {
             predatorPosition: settings.predatorPosition,
             predatorRadius: settings.predatorRadius,
             predatorWeight: settings.predatorWeight,
+            wallAvoidanceThreshold: settings.wallAvoidanceThreshold,
+            wallAvoidanceWeight: settings.wallAvoidanceWeight,
+            wrap: settings.wrap,
         });
         renderer.drawQuad(boidsFBO.writeFBO);
         boidsFBO.swap();

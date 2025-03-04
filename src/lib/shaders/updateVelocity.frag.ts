@@ -17,6 +17,9 @@ uniform float sightRadius;
 uniform vec2 predatorPosition;
 uniform float predatorRadius;
 uniform float predatorWeight;
+uniform float wallAvoidanceThreshold;
+uniform float wallAvoidanceWeight;
+uniform bool wrap;
 
 out vec4 fragColor;
 
@@ -57,10 +60,10 @@ void main() {
         // Inverse square for stronger close-range avoidance
         float predatorInfluence = 1.0 - (distToPredator / predatorRadius);
         predatorInfluence = predatorInfluence * predatorInfluence; // Square for stronger effect
-        predatorAvoidance = normalize(position - predatorPosition) * predatorInfluence * 0.005;
+        predatorAvoidance = normalize(position - predatorPosition) * predatorInfluence * predatorWeight;
         
         // Immediately adjust velocity away from predator
-        velocity += predatorAvoidance * 5.0;
+        velocity += predatorAvoidance;
     }
 
     // Check all potential neighbors. TODO: optimize
@@ -76,13 +79,9 @@ void main() {
         float dist = length(diff);
 
         if (dist < sightRadius && dist > 0.0) {
-            // Separation: steer away from nearby boids
+            // sum everything for now, convert to avg later
             separation += normalize(diff) / dist;
-            
-            // Alignment: steer towards average heading
             alignment += neighborVel;
-            
-            // Cohesion: steer towards center of mass
             cohesion += neighborPos;
             
             neighborCount += 1.0;
@@ -95,11 +94,19 @@ void main() {
         alignment = normalize(alignment / neighborCount) * alignmentWeight;
         cohesion = normalize((cohesion / neighborCount) - position) * cohesionWeight;
         
-        acceleration = separation + alignment + cohesion;
+        acceleration = separation + alignment + cohesion; // F=ma=a
     }
 
-    // Add predator influence
-    acceleration += predatorAvoidance * predatorWeight;
+    acceleration += predatorAvoidance;
+
+    vec2 wallAvoidance = vec2(0.0);
+    if (position.x < wallAvoidanceThreshold || position.x > 1.0 - wallAvoidanceThreshold) {
+        wallAvoidance.x = -sign(position.x - 0.5);
+    }
+    if (position.y < wallAvoidanceThreshold || position.y > 1.0 - wallAvoidanceThreshold) {
+        wallAvoidance.y = -sign(position.y - 0.5);
+    }
+    acceleration += wallAvoidance * wallAvoidanceWeight;
 
     // Update velocity
     velocity += acceleration * deltaT;
@@ -116,10 +123,17 @@ void main() {
     position += velocity * deltaT;
 
     // Wrap around edges
-    if (position.x < 0.0) position.x += 1.0;
-    if (position.x > 1.0) position.x -= 1.0;
-    if (position.y < 0.0) position.y += 1.0;
-    if (position.y > 1.0) position.y -= 1.0;
+    if (wrap) {
+        position = mod(position, 1.0);
+    } else {
+        position = clamp(position, 0.0, 1.0);
+        if (position.x == 0.0 || position.x == 1.0) {
+            velocity.x = 0.0;
+        }
+        if (position.y == 0.0 || position.y == 1.0) {
+            velocity.y = 0.0;
+        }
+    }
 
     fragColor = vec4(position, velocity);
 }
