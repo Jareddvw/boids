@@ -5,8 +5,6 @@ import { colors } from "../utils/utils";
 
 
 export class Simulation {
-    private texelDims = [0, 0];
-
     private gl: WebGL2RenderingContext;
     private renderer: Renderer;
 
@@ -20,10 +18,14 @@ export class Simulation {
             throw new Error('WebGL2 not supported');
         }
         this.gl = gl;
-        this.texelDims = [1 / canvas.width, 1 / canvas.height];
         
         // Default settings
         const defaultSettings: SimulationSettings = {
+            numBoids: 10_000,
+            separationWeight: 1,
+            alignmentWeight: 1,
+            cohesionWeight: 1,
+            sightRadius: 0.01,
         };
 
         this.settings = { ...defaultSettings, ...settings };
@@ -31,48 +33,14 @@ export class Simulation {
         this.resetAll();
     }
 
+    public updateSettings(settings: Partial<SimulationSettings>) {
+        this.settings = { ...this.settings, ...settings };
+    }
+
     public step() {
         this.drawBoids();
-        this.updateVelocities();
-        this.updatePositions();
-    }
-
-    private updateVelocities() {
-        const { renderer } = this;
-        const { updateVelocityProgram } = renderer.getPrograms();
-        const { boidsFBO, velocitiesFBO } = renderer.getFBOs();
-
-        const boidDensity = 0.001
-
-        updateVelocityProgram.use();
-        updateVelocityProgram.setUniforms({
-            positions: boidsFBO.readFBO.texture,
-            velocities: velocitiesFBO.readFBO.texture,
-            boidCount: this.gl.canvas.width * this.gl.canvas.height * boidDensity,
-            canvasSize: [this.gl.canvas.width, this.gl.canvas.height],
-            separationWeight: 1,
-            alignmentWeight: 1,
-            cohesionWeight: 1,
-            sightRadius: 0.01,
-        })
-        renderer.drawQuad(velocitiesFBO.writeFBO)
-        velocitiesFBO.swap()
-    }
-
-    private updatePositions() {
-        const { renderer } = this;
-        const { advectBoidsProgram } = renderer.getPrograms();
-        const { boidsFBO, velocitiesFBO } = renderer.getFBOs();
-        advectBoidsProgram.use();
-        advectBoidsProgram.setUniforms({
-            velocity: velocitiesFBO.readFBO.texture,
-            quantity: boidsFBO.readFBO.texture,
-            dt: this.deltaT,
-            gridScale: 1,
-            texelDims: this.texelDims,
-        })
-        renderer.drawQuad(boidsFBO.writeFBO)
-        boidsFBO.swap()
+        // console.log("Canvas size: ", this.gl.canvas.width, this.gl.canvas.height, this.gl.canvas.width * this.gl.canvas.height)
+        this.updateBoids();
     }
 
     resetBoids() {
@@ -86,7 +54,7 @@ export class Simulation {
 
     private drawBoids() {
         // draw the boids to the screen
-        const { renderer } = this;
+        const { renderer, settings } = this;
         const { fillColorProgram, drawBoidsProgram } = renderer.getPrograms();
         const { boidsFBO } = renderer.getFBOs();
         fillColorProgram.use()
@@ -97,9 +65,29 @@ export class Simulation {
             drawBoidsProgram,
             0,
             null,
-            0.001,
+            settings.numBoids,
             1,
         )
+    }
+
+    private updateBoids() {
+        // update the boids
+        const { renderer, settings } = this;
+        const { updateVelocityProgram } = renderer.getPrograms();
+        const { boidsFBO } = renderer.getFBOs();
+        updateVelocityProgram.use()
+        updateVelocityProgram.setUniforms({
+            boids: boidsFBO.readFBO.texture,
+            deltaT: this.deltaT,
+            boidCount: settings.numBoids,
+            canvasSize: [Math.sqrt(settings.numBoids), Math.sqrt(settings.numBoids)],
+            separationWeight: settings.separationWeight,
+            alignmentWeight: settings.alignmentWeight,
+            cohesionWeight: settings.cohesionWeight,
+            sightRadius: settings.sightRadius,
+        })
+        renderer.drawQuad(boidsFBO.writeFBO)
+        boidsFBO.swap()
     }
 
 

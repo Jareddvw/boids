@@ -1,4 +1,3 @@
-import { advectBoidsFrag } from "../shaders/advectBoids.frag";
 import { drawBoidsFrag } from "../shaders/drawBoids.frag";
 import { drawBoidsVert } from "../shaders/drawBoids.vert";
 import { fillColorFrag } from "../shaders/fillColor.frag";
@@ -20,6 +19,7 @@ export class Renderer {
     private gl: WebGL2RenderingContext;
     private fbos: FBORecord;
     private programs: ProgramRecord;
+    private numBoids = 49;
 
     private quadObjects: {
         quadIndexBuffer: WebGLBuffer | null;
@@ -74,8 +74,7 @@ export class Renderer {
         }
         const { gl } = this;
         return {
-            boidsFBO: new DoubleFBO(gl, gl.canvas.width, gl.canvas.height),
-            velocitiesFBO: new DoubleFBO(gl, gl.canvas.width, gl.canvas.height)
+            boidsFBO: new DoubleFBO(gl, Math.sqrt(this.numBoids), Math.sqrt(this.numBoids)),
         }
     }
 
@@ -104,16 +103,12 @@ export class Renderer {
         const resetBoidsF = new Shader(gl, gl.FRAGMENT_SHADER, resetBoidsFrag)
         const resetBoidsProgram = new Program(gl, [passThroughV, resetBoidsF])
 
-        const advectBoidsF = new Shader(gl, gl.FRAGMENT_SHADER, advectBoidsFrag)
-        const advectBoidsProgram = new Program(gl, [passThroughV, advectBoidsF])
-
         return {
             copyProgram,
             drawBoidsProgram,
             updateVelocityProgram,
             fillColorProgram,
             resetBoidsProgram,
-            advectBoidsProgram,
         }
     }
 
@@ -148,7 +143,7 @@ export class Renderer {
      * @param boidProgram The program to use for drawing the boids.
      * @param colorMode The color mode for the boids.
      * @param target The FBO to draw to, or null to draw to the screen.
-     * @param boidDensity The boid density, between 0 and 1.
+     * @param numBoids The number of boids to draw.
      * @param pointSize The size of each boid.
      */
     public drawBoids(
@@ -156,42 +151,53 @@ export class Renderer {
         boidProgram: Program,
         colorMode: number,
         target: FBO | null,
-        boidDensity = 0.1,
-        pointSize = 1,
+        numBoids = this.numBoids,
+        pointSize = 2,
     ) {
-        if (target) {
-            target.bind()
-        } else {
-            this.gl.viewport(0, 0, this.gl.canvas.width, this.gl.canvas.height)
-            this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, null)
-        }
-        const { gl, particleObjects } = this;
-        const { particleBuffer, particleIndices } = particleObjects;
-        const numParticles = gl.canvas.width * gl.canvas.height * boidDensity
+        const { gl } = this;
+        this.numBoids = numBoids;
         
-        boidProgram.use()
+        if (target) {
+            target.bind();
+        } else {
+            gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+            gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        }
+
+        gl.enable(gl.BLEND);
+        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+
+        const size = Math.ceil(Math.sqrt(numBoids));
+        boidProgram.use();
         boidProgram.setUniforms({
             positions: boidTexture,
-            canvasSize: [gl.canvas.width, gl.canvas.height],
+            canvasSize: [size, size],
             pointSize,
             colorMode,
-        })
+        });
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, particleBuffer)
-        if (particleIndices.length !== numParticles) {
-            const newIndices = new Float32Array(numParticles)
-            for (let i = 0; i < numParticles; i += 1) {
-                newIndices[i] = i / boidDensity
+        const { particleBuffer } = this.particleObjects;
+        gl.bindBuffer(gl.ARRAY_BUFFER, particleBuffer);
+        
+        if (this.particleObjects.particleIndices.length !== numBoids) {
+            const indices = new Float32Array(numBoids);
+            for (let i = 0; i < numBoids; i++) {
+                indices[i] = i;
             }
-            this.particleObjects.particleIndices = newIndices
-            gl.bufferData(gl.ARRAY_BUFFER, newIndices, gl.STATIC_DRAW)
+            this.particleObjects.particleIndices = indices;
+            gl.bufferData(gl.ARRAY_BUFFER, indices, gl.STATIC_DRAW);
         } else {
-            gl.bufferData(gl.ARRAY_BUFFER, particleIndices, gl.STATIC_DRAW)
+            gl.bufferData(gl.ARRAY_BUFFER, this.particleObjects.particleIndices, gl.STATIC_DRAW);
         }
 
-        gl.vertexAttribPointer(0, 1, gl.FLOAT, false, 0, 0)
-        gl.enableVertexAttribArray(0)
-        gl.drawArrays(gl.POINTS, 0, numParticles)
+        gl.vertexAttribPointer(0, 1, gl.FLOAT, false, 0, 0);
+        gl.enableVertexAttribArray(0);
+        
+        gl.drawArrays(gl.POINTS, 0, numBoids);
+
+        gl.disable(gl.BLEND);
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+        gl.bindTexture(gl.TEXTURE_2D, null);
     }
 
     public maybeResize() {
@@ -202,8 +208,7 @@ export class Renderer {
         gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
         // copy the fbos to new ones with the new size
         const newFbos = {
-            boidsFBO: new DoubleFBO(gl, gl.canvas.width, gl.canvas.height),
-            velocitiesFBO: new DoubleFBO(gl, gl.canvas.width, gl.canvas.height),
+            boidsFBO: new DoubleFBO(gl, Math.sqrt(this.numBoids), Math.sqrt(this.numBoids)),
         }
         if (Object.values(newFbos).some(fbo => !fbo)) {
             throw new Error('Failed to create FBOs')

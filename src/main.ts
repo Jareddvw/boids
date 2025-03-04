@@ -41,3 +41,14 @@ const render = (now: number) => {
     requestAnimationFrame(render);
 }
 requestAnimationFrame(render);
+
+const button = document.getElementById('btn') as HTMLButtonElement
+let numBoids = 10_000
+button.addEventListener('click', () => {
+    if (numBoids === 10_000) {
+        numBoids = 25
+    } else {
+        numBoids = 10_000
+    }
+    simulation.updateSettings({ numBoids })
+})

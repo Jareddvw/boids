@@ -30,7 +30,9 @@ void main() {
         vec2 initialPos = decode(indexOut, canvasSize);
         float blue = length(initialPos - vec2(1.0, 1.0));
         blue = max(blue, 0.0);
-        fragColor = vec4(abs(initialPos.xy), blue, 1.0);
+        fragColor = vec4(1.0, 1.0, 1.0, 1.0);
+    } else {
+        fragColor = vec4(1.0, 1.0, 1.0, 1.0);
     }
 }
 `;
