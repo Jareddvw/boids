@@ -7,7 +7,88 @@
     <title>Boids</title>
   </head>
   <body>
-    <button id="btn">Button</button>
+    <div id="controls">
+      <div class="control-group">
+        <h3>Boids</h3>
+        <div class="stats">
+          <span>FPS: <span id="fpsCounter">0</span></span>
+          <div class="button-group">
+            <button id="pauseButton">Pause</button>
+            <button id="resetButton">Reset</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="control-group">
+        <h3>Rendering</h3>
+        <label>
+          Number of Boids:
+          <input type="range" id="numBoids" min="10" max="10000" value="64" step="10">
+          <span class="value"></span>
+        </label>
+        <label>
+          Point Size:
+          <input type="range" id="pointSize" min="1" max="10" value="4" step="0.5">
+          <span class="value"></span>
+        </label>
+      </div>
+
+      <div class="control-group">
+        <h3>Weights</h3>
+        <label>
+          Separation:
+          <input type="range" id="separationWeight" min="0" max="0.5" value="0.15" step="0.01">
+          <span class="value"></span>
+        </label>
+        <label>
+          Alignment:
+          <input type="range" id="alignmentWeight" min="0" max="0.5" value="0.1" step="0.01">
+          <span class="value"></span>
+        </label>
+        <label>
+          Cohesion:
+          <input type="range" id="cohesionWeight" min="0" max="0.5" value="0.15" step="0.01">
+          <span class="value"></span>
+        </label>
+      </div>
+
+      <div class="control-group">
+        <h3>Vision & Predator</h3>
+        <label>
+          Sight Radius:
+          <input type="range" id="sightRadius" min="0.01" max="0.2" value="0.05" step="0.01">
+          <span class="value"></span>
+        </label>
+        <label>
+          Predator Radius:
+          <input type="range" id="predatorRadius" min="0.1" max="0.5" value="0.2" step="0.01">
+          <span class="value"></span>
+        </label>
+        <label>
+          Predator Weight:
+          <input type="range" id="predatorWeight" min="0" max="0.5" value="0.1" step="0.01">
+          <span class="value"></span>
+        </label>
+      </div>
+
+      <div class="control-group">
+        <h3>Wall Settings</h3>
+        <label>
+          Wall Threshold:
+          <input type="range" id="wallAvoidanceThreshold" min="0.05" max="0.3" value="0.15" step="0.01">
+          <span class="value"></span>
+        </label>
+        <label>
+          Wall Weight:
+          <input type="range" id="wallAvoidanceWeight" min="0" max="0.3" value="0.11" step="0.01">
+          <span class="value"></span>
+        </label>
+        <label>
+          Wrap:
+          <input type="checkbox" id="wrap">
+        </label>
+      </div>
+    </div>
     <canvas id="main-canvas"></canvas>
     <script type="module" src="/src/main.ts"></script>
   </body>

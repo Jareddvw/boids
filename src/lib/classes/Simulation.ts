@@ -97,8 +97,7 @@ export class Simulation {
     }
 
 
-    private resetAll() {
+    resetAll() {
         this.resetBoids()
     }
-
 }
