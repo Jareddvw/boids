@@ -19,7 +19,7 @@ export class Renderer {
     private gl: WebGL2RenderingContext;
     private fbos: FBORecord;
     private programs: ProgramRecord;
-    private numBoids = 49;
+    private numBoids = 10_000;
 
     private quadObjects: {
         quadIndexBuffer: WebGLBuffer | null;

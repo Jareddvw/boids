@@ -5,11 +5,9 @@ import { colors } from "../utils/utils";
 
 
 export class Simulation {
-    private gl: WebGL2RenderingContext;
     private renderer: Renderer;
 
     private settings: SimulationSettings;
-    private imageTexture: WebGLTexture | null = null;
     private deltaT = 1 / 60;
 
     constructor(canvas: HTMLCanvasElement, settings: Partial<SimulationSettings> = {}) {
@@ -17,15 +15,18 @@ export class Simulation {
         if (!gl) {
             throw new Error('WebGL2 not supported');
         }
-        this.gl = gl;
         
         // Default settings
         const defaultSettings: SimulationSettings = {
             numBoids: 10_000,
-            separationWeight: 1,
-            alignmentWeight: 1,
-            cohesionWeight: 1,
-            sightRadius: 0.01,
+            separationWeight: 0.25,
+            alignmentWeight: 0.2,
+            cohesionWeight: 0.2,
+            sightRadius: 0.05,
+            predatorPosition: [-1, -1],
+            predatorRadius: 0.2,
+            predatorWeight: 0.8,
+            pointSize: 2,
         };
 
         this.settings = { ...defaultSettings, ...settings };
@@ -38,13 +39,12 @@ export class Simulation {
     }
 
     public step() {
+        this.renderer.maybeResize();
         this.drawBoids();
-        // console.log("Canvas size: ", this.gl.canvas.width, this.gl.canvas.height, this.gl.canvas.width * this.gl.canvas.height)
         this.updateBoids();
     }
 
     resetBoids() {
-        // reset the boids
         const { renderer } = this;
         const { boidsFBO } = renderer.getFBOs();
         const { resetBoidsProgram } = renderer.getPrograms();
@@ -53,7 +53,6 @@ export class Simulation {
     }
 
     private drawBoids() {
-        // draw the boids to the screen
         const { renderer, settings } = this;
         const { fillColorProgram, drawBoidsProgram } = renderer.getPrograms();
         const { boidsFBO } = renderer.getFBOs();
@@ -66,28 +65,29 @@ export class Simulation {
             0,
             null,
             settings.numBoids,
-            1,
+            settings.pointSize,
         )
     }
 
     private updateBoids() {
-        // update the boids
         const { renderer, settings } = this;
         const { updateVelocityProgram } = renderer.getPrograms();
         const { boidsFBO } = renderer.getFBOs();
-        updateVelocityProgram.use()
+        updateVelocityProgram.use();
         updateVelocityProgram.setUniforms({
             boids: boidsFBO.readFBO.texture,
             deltaT: this.deltaT,
             boidCount: settings.numBoids,
-            canvasSize: [Math.sqrt(settings.numBoids), Math.sqrt(settings.numBoids)],
             separationWeight: settings.separationWeight,
             alignmentWeight: settings.alignmentWeight,
             cohesionWeight: settings.cohesionWeight,
             sightRadius: settings.sightRadius,
-        })
-        renderer.drawQuad(boidsFBO.writeFBO)
-        boidsFBO.swap()
+            predatorPosition: settings.predatorPosition,
+            predatorRadius: settings.predatorRadius,
+            predatorWeight: settings.predatorWeight,
+        });
+        renderer.drawQuad(boidsFBO.writeFBO);
+        boidsFBO.swap();
     }
 
 

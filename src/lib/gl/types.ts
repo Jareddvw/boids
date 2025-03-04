@@ -21,4 +21,8 @@ export type SimulationSettings = {
     alignmentWeight: number,
     cohesionWeight: number,
     sightRadius: number,
+    predatorPosition: [number, number],  
+    predatorRadius: number,  
+    predatorWeight: number,  
+    pointSize: number,
 }

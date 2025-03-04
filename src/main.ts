@@ -52,3 +52,26 @@ button.addEventListener('click', () => {
     }
     simulation.updateSettings({ numBoids })
 })
+
+canvas.addEventListener('mousemove', (e) => {
+    const x = e.offsetX / canvas.width
+    const y = 1 - e.offsetY / canvas.height
+    simulation.updateSettings({
+        predatorPosition: [x, y]
+    });
+});
+
+canvas.addEventListener('touchmove', (e) => {
+    e.preventDefault();
+    const x = e.touches[0].clientX / canvas.width
+    const y = 1 - e.touches[0].clientY / canvas.height
+    simulation.updateSettings({
+        predatorPosition: [x, y]
+    });
+});
+
+canvas.onmouseleave = () => {
+    simulation.updateSettings({
+        predatorPosition: [-1, -1]
+    });
+}
