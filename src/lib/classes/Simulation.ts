@@ -61,8 +61,14 @@ export class Simulation {
         const { boidsFBO, boidLayoutFBO } = renderer.getFBOs();
         const size = Math.ceil(Math.sqrt(settings.numBoids));
 
+        fillColorProgram.use();
+        fillColorProgram.setUniforms({
+            color: [0, 0, 0, 0.0],
+        });
+        renderer.drawQuad(boidLayoutFBO.writeFBO);
         boidLayoutProgram.use();
         boidLayoutProgram.setUniforms({
+            positions: boidsFBO.readFBO.texture,
             canvasSize: [size, size],
             pointSize: settings.pointSize,
         });
@@ -71,14 +77,9 @@ export class Simulation {
             settings.numBoids,
         )
         boidLayoutFBO.swap();
-        copyProgram.use()
-        copyProgram.setTexture('tex', boidLayoutFBO.readFBO.texture, 0)
-        renderer.drawQuad(null);
-        fillColorProgram.use();
-        fillColorProgram.setUniforms({
-            color: [0, 0, 0, 0.0],
-        });
-        renderer.drawQuad(boidLayoutFBO.writeFBO);
+        // copyProgram.use()
+        // copyProgram.setTexture('tex', boidLayoutFBO.readFBO.texture, 0)
+        // renderer.drawQuad(null);
 
 
 
@@ -94,10 +95,10 @@ export class Simulation {
             pointSize: settings.pointSize,
             colorMode: 0,
         });
-        // renderer.drawPoints(
-        //     null,
-        //     settings.numBoids,
-        // )
+        renderer.drawPoints(
+            null,
+            settings.numBoids,
+        )
     }
 
     private updateBoids() {
@@ -125,11 +126,11 @@ export class Simulation {
     }
 
     updateFluid() {
-        // const { renderer, fluidSim, settings } = this;
-        // if (!fluidSim) return;
-        // console.log('updateFluid')
-        // const { updateFluidProgram, boidLayoutProgram, copyProgram } = renderer.getPrograms();
-        // const { boidsFBO, boidLayoutFBO } = renderer.getFBOs();
+        const { renderer, fluidSim, settings } = this;
+        if (!fluidSim) return;
+        console.log('updateFluid')
+        const { updateFluidProgram, boidLayoutProgram, copyProgram } = renderer.getPrograms();
+        const { boidsFBO, boidLayoutFBO } = renderer.getFBOs();
         // boidLayoutProgram.use();
         // const size = Math.ceil(Math.sqrt(settings.numBoids));
         // boidLayoutProgram.setUniforms({
@@ -146,13 +147,13 @@ export class Simulation {
         // copyProgram.setTexture('tex', boidLayoutFBO.readFBO.texture, 0)
         // renderer.drawQuad(null);
 
-        // updateFluidProgram.use();
-        // updateFluidProgram.setUniforms({
-        //     boidPositions: boidLayoutFBO.readFBO.texture,
-        //     fluidVelocity: fluidSim.getFBOs().velocityFBO.readFBO.texture,
-        // });
-        // renderer.drawQuad(fluidSim.getFBOs().velocityFBO.writeFBO);
-        // fluidSim.getFBOs().velocityFBO.swap();
+        updateFluidProgram.use();
+        updateFluidProgram.setUniforms({
+            boidPositions: boidLayoutFBO.readFBO.texture,
+            fluidVelocity: fluidSim.getFBOs().velocityFBO.readFBO.texture,
+        });
+        renderer.drawQuad(fluidSim.getFBOs().velocityFBO.writeFBO);
+        fluidSim.getFBOs().velocityFBO.swap();
     }
 
 
