@@ -1,9 +1,11 @@
 import { drawBoidsFrag } from "../shaders/drawBoids.frag";
 import { drawBoidsVert } from "../shaders/drawBoids.vert";
+import { drawBoidVelocityFrag } from "../shaders/drawBoidVelocity.frag";
 import { fillColorFrag } from "../shaders/fillColor.frag";
 import { passThroughFrag } from "../shaders/passThrough.frag";
 import { passThroughVert } from "../shaders/passThrough.vert";
 import { resetBoidsFrag } from "../shaders/resetBoids.frag";
+import { updateFluidFrag } from "../shaders/updateFluid.frag";
 import { updateVelocityFrag } from "../shaders/updateVelocity.frag";
 import { DoubleFBO } from "./DoubleFBO";
 import { FBO } from "./FBO";
@@ -75,6 +77,7 @@ export class Renderer {
         const { gl } = this;
         return {
             boidsFBO: new DoubleFBO(gl, Math.sqrt(this.numBoids), Math.sqrt(this.numBoids)),
+            boidLayoutFBO: new DoubleFBO(gl, gl.canvas.width, gl.canvas.height),
         }
     }
 
@@ -103,12 +106,20 @@ export class Renderer {
         const resetBoidsF = new Shader(gl, gl.FRAGMENT_SHADER, resetBoidsFrag)
         const resetBoidsProgram = new Program(gl, [passThroughV, resetBoidsF])
 
+        const updateFluidF = new Shader(gl, gl.FRAGMENT_SHADER, updateFluidFrag)
+        const updateFluidProgram = new Program(gl, [passThroughV, updateFluidF])
+
+        const updateLayoutF = new Shader(gl, gl.FRAGMENT_SHADER, drawBoidVelocityFrag)
+        const boidLayoutProgram = new Program(gl, [drawBoidsV, updateLayoutF])
+
         return {
             copyProgram,
             drawBoidsProgram,
             updateVelocityProgram,
             fillColorProgram,
             resetBoidsProgram,
+            updateFluidProgram,
+            boidLayoutProgram,
         }
     }
 
@@ -139,20 +150,12 @@ export class Renderer {
 
     /**
      * Draws boids.
-     * @param boidTexture The texture containing the boids.
-     * @param boidProgram The program to use for drawing the boids.
-     * @param colorMode The color mode for the boids.
      * @param target The FBO to draw to, or null to draw to the screen.
      * @param numBoids The number of boids to draw.
-     * @param pointSize The size of each boid.
      */
-    public drawBoids(
-        boidTexture: WebGLTexture,
-        boidProgram: Program,
-        colorMode: number,
+    public drawPoints(
         target: FBO | null,
         numBoids = this.numBoids,
-        pointSize = 2,
     ) {
         const { gl } = this;
         this.numBoids = numBoids;
@@ -166,15 +169,6 @@ export class Renderer {
 
         gl.enable(gl.BLEND);
         gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-
-        const size = Math.ceil(Math.sqrt(numBoids));
-        boidProgram.use();
-        boidProgram.setUniforms({
-            positions: boidTexture,
-            canvasSize: [size, size],
-            pointSize,
-            colorMode,
-        });
 
         const { particleBuffer } = this.particleObjects;
         gl.bindBuffer(gl.ARRAY_BUFFER, particleBuffer);
@@ -209,6 +203,7 @@ export class Renderer {
         // copy the fbos to new ones with the new size
         const newFbos = {
             boidsFBO: new DoubleFBO(gl, Math.sqrt(this.numBoids), Math.sqrt(this.numBoids)),
+            boidLayoutFBO: new DoubleFBO(gl, gl.canvas.width, gl.canvas.height),
         }
         if (Object.values(newFbos).some(fbo => !fbo)) {
             throw new Error('Failed to create FBOs')

@@ -14,6 +14,7 @@ uniform float pointSize;
 
 out vec2 texCoord;
 out float indexOut;
+out vec4 boidData;
 
 void main() {
     float size = canvasSize.x;
@@ -21,7 +22,7 @@ void main() {
     float x = mod(index, size);
     vec2 texPos = (vec2(x, y) + 0.5) / size;
     
-    vec4 boidData = texture(positions, texPos);
+    boidData = texture(positions, texPos);
     texCoord = boidData.xy;
     indexOut = index;
     

@@ -1,3 +1,4 @@
+import { Simulation as FluidSim } from "@red_j/webgl-fluid-sim";
 import { Renderer } from "../gl/Renderer";
 import { SimulationSettings } from "../gl/types";
 
@@ -6,12 +7,14 @@ export class Simulation {
 
     private settings: SimulationSettings;
     private deltaT = 1 / 60;
+    private fluidSim?: FluidSim;
 
-    constructor(canvas: HTMLCanvasElement, settings: Partial<SimulationSettings> = {}) {
+    constructor(canvas: HTMLCanvasElement, settings: Partial<SimulationSettings> = {}, fluidSim?: FluidSim) {
         const gl = canvas.getContext('webgl2');
         if (!gl) {
             throw new Error('WebGL2 not supported');
         }
+        this.fluidSim = fluidSim
         
         // Default settings
         const defaultSettings: SimulationSettings = {
@@ -54,17 +57,47 @@ export class Simulation {
 
     private drawBoids() {
         const { renderer, settings } = this;
-        const { drawBoidsProgram } = renderer.getPrograms();
-        const { boidsFBO } = renderer.getFBOs();
-        renderer.drawQuad(null)
-        renderer.drawBoids(
-            boidsFBO.readFBO.texture,
-            drawBoidsProgram,
-            0,
-            null,
+        const { boidLayoutProgram, copyProgram, drawBoidsProgram, fillColorProgram } = renderer.getPrograms();
+        const { boidsFBO, boidLayoutFBO } = renderer.getFBOs();
+        const size = Math.ceil(Math.sqrt(settings.numBoids));
+
+        boidLayoutProgram.use();
+        boidLayoutProgram.setUniforms({
+            canvasSize: [size, size],
+            pointSize: settings.pointSize,
+        });
+        renderer.drawPoints(
+            boidLayoutFBO.writeFBO,
             settings.numBoids,
-            settings.pointSize,
         )
+        boidLayoutFBO.swap();
+        copyProgram.use()
+        copyProgram.setTexture('tex', boidLayoutFBO.readFBO.texture, 0)
+        renderer.drawQuad(null);
+        fillColorProgram.use();
+        fillColorProgram.setUniforms({
+            color: [0, 0, 0, 0.0],
+        });
+        renderer.drawQuad(boidLayoutFBO.writeFBO);
+
+
+
+        // copyProgram.use();
+        // copyProgram.setUniforms({
+        //     tex: boidsFBO.readFBO.texture,
+        // });
+        // renderer.drawQuad(null)
+        drawBoidsProgram.use();
+        drawBoidsProgram.setUniforms({
+            positions: boidsFBO.readFBO.texture,
+            canvasSize: [size, size],
+            pointSize: settings.pointSize,
+            colorMode: 0,
+        });
+        // renderer.drawPoints(
+        //     null,
+        //     settings.numBoids,
+        // )
     }
 
     private updateBoids() {
@@ -91,8 +124,50 @@ export class Simulation {
         boidsFBO.swap();
     }
 
+    updateFluid() {
+        // const { renderer, fluidSim, settings } = this;
+        // if (!fluidSim) return;
+        // console.log('updateFluid')
+        // const { updateFluidProgram, boidLayoutProgram, copyProgram } = renderer.getPrograms();
+        // const { boidsFBO, boidLayoutFBO } = renderer.getFBOs();
+        // boidLayoutProgram.use();
+        // const size = Math.ceil(Math.sqrt(settings.numBoids));
+        // boidLayoutProgram.setUniforms({
+        //     boids: boidsFBO.readFBO.texture,
+        //     canvasSize: [size, size],
+        //     pointSize: settings.pointSize,
+        // });
+        // renderer.drawPoints(
+        //     boidLayoutFBO.writeFBO,
+        //     settings.numBoids,
+        // )
+        // boidLayoutFBO.swap();
+        // copyProgram.use()
+        // copyProgram.setTexture('tex', boidLayoutFBO.readFBO.texture, 0)
+        // renderer.drawQuad(null);
+
+        // updateFluidProgram.use();
+        // updateFluidProgram.setUniforms({
+        //     boidPositions: boidLayoutFBO.readFBO.texture,
+        //     fluidVelocity: fluidSim.getFBOs().velocityFBO.readFBO.texture,
+        // });
+        // renderer.drawQuad(fluidSim.getFBOs().velocityFBO.writeFBO);
+        // fluidSim.getFBOs().velocityFBO.swap();
+    }
+
 
     resetAll() {
         this.resetBoids()
+
+        const { renderer } = this;
+        const { fillColorProgram } = renderer.getPrograms();
+        const { boidLayoutFBO } = renderer.getFBOs();
+        // fillColorProgram.use();
+        // fillColorProgram.setUniforms({
+        //     color: [0, 0, 0, 0],
+        // });
+        // renderer.drawQuad(boidLayoutFBO.readFBO)
+        // renderer.drawQuad(boidLayoutFBO.writeFBO)
+        // renderer.drawQuad(null);
     }
 }

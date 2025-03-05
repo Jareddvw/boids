@@ -29,14 +29,22 @@ if (!canvas) {
     throw new Error('No canvas found')
 }
 
-const fluidSim = new FluidSim(canvas)
-fluidSim.updateSettings({
-    colorMode: ColorMode.BlackAndWhite,
-})
+// const fluidSim = new FluidSim(canvas)
+// fluidSim.updateSettings({
+//     colorMode: ColorMode.Rainbow,
+//     callbacks: {
+//         postForce: [() => {
+//             simulation.updateFluid()
+//         }],
+//         postAdvect: [],
+//         postJacobi: [],
+//         postColor: []
+//     }
+// })
 
-const updateFluid = () => {
-    fluidSim.step(0.016)
-}
+// const updateFluid = () => {
+//     fluidSim.step(0.016)
+// }
 
 // gets the nearest square number to a given number
 const nearestSquare = (num: number) => {
@@ -104,7 +112,11 @@ const initializeValues = () => {
 };
 
 const getFPS = getFpsCallback()
-const simulation = new Simulation(canvas, defaultSettings);
+const simulation = new Simulation(
+    canvas, 
+    defaultSettings, 
+    // fluidSim
+);
 
 initializeValues();
 
@@ -151,7 +163,7 @@ const render = () => {
     const fps = getFPS();
     fpsCounter.textContent = Math.round(fps).toString();
 
-    updateFluid()
+    // updateFluid()
     simulation.step();
 
     animationFrameId = requestAnimationFrame(render);
@@ -161,15 +173,15 @@ requestAnimationFrame(render);
 let mouseDown = false;
 canvas.onmouseup = () => {
     mouseDown = false;
-    fluidSim.updateSettings({externalForces: [
-        {
-            impulseDirection: [0, 0],
-            impulsePosition: [0, 0],
-            impulseRadius: 0,
-            impulseMagnitude: 0,
-            impulseType: ImpulseType.GaussianSplat,
-        }
-    ]})
+    // fluidSim.updateSettings({externalForces: [
+    //     {
+    //         impulseDirection: [0, 0],
+    //         impulsePosition: [0, 0],
+    //         impulseRadius: 0,
+    //         impulseMagnitude: 0,
+    //         impulseType: ImpulseType.GaussianSplat,
+    //     }
+    // ]})
 }
 
 canvas.onmousedown = () => {
@@ -188,23 +200,21 @@ const handleFluidMouseMove = (e: MouseEvent) => {
         const norm = Math.sqrt(dx * dx + dy * dy);
         const velocity = (norm > 0 ? [dx / norm, dy / norm] : [0, 0]) as [number, number];
 
-        fluidSim.updateSettings({
-            externalForces: [
-                {
-                  "impulseDirection": velocity,
-                  "impulsePosition": [
-                    x, y
-                  ],
-                  "impulseRadius": 0.0001,
-                  "impulseMagnitude": 0.15165441176470706,
-                  "impulseType": 0
-                }
-              ]
-        });
+        // fluidSim.updateSettings({
+        //     externalForces: [
+        //         {
+        //           "impulseDirection": velocity,
+        //           "impulsePosition": [
+        //             x, y
+        //           ],
+        //           "impulseRadius": 0.0001,
+        //           "impulseMagnitude": 0.15165441176470706,
+        //           "impulseType": 0
+        //         }
+        //       ]
+        // });
     }
 }
-
-console.log(fluidSim.getSettings())
 
 canvas.addEventListener('mousemove', (e) => {
     handleFluidMouseMove(e);
