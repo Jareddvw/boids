@@ -9,12 +9,15 @@ precision highp float;
 layout(location=0) in float index;
 
 uniform sampler2D positions;
+uniform sampler2D prevPositions;
 uniform vec2 canvasSize;
 uniform float pointSize;
 
 out vec2 texCoord;
 out float indexOut;
+
 out vec4 boidData;
+out vec4 prevBoidData;
 
 void main() {
     float size = canvasSize.x;
@@ -23,6 +26,7 @@ void main() {
     vec2 texPos = (vec2(x, y) + 0.5) / size;
     
     boidData = texture(positions, texPos);
+    prevBoidData = texture(prevPositions, texPos);
     texCoord = boidData.xy;
     indexOut = index;
     

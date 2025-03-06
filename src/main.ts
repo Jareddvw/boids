@@ -29,6 +29,8 @@ if (!canvas) {
     throw new Error('No canvas found')
 }
 
+let deltaT = 0;
+
 const fluidSim = new FluidSim(canvas)
 fluidSim.updateSettings({
     colorMode: ColorMode.BlackAndWhite,
@@ -42,10 +44,6 @@ fluidSim.updateSettings({
         postColor: []
     }
 })
-
-const updateFluid = () => {
-    fluidSim.step(0.016)
-}
 
 // gets the nearest square number to a given number
 const nearestSquare = (num: number) => {
@@ -163,9 +161,10 @@ const render = () => {
 
     const fps = getFPS();
     fpsCounter.textContent = Math.round(fps).toString();
+    deltaT = 2 / fps;
 
-    updateFluid()
-    simulation.step();
+    fluidSim.step(deltaT);
+    simulation.step(deltaT);
 
     animationFrameId = requestAnimationFrame(render);
 };

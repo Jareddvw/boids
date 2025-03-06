@@ -41,7 +41,8 @@ export class Simulation {
         this.settings = { ...this.settings, ...settings };
     }
 
-    public step() {
+    public step(deltaT = 1 / 60) {
+        this.deltaT = deltaT;
         this.renderer.maybeResize();
         this.drawBoids();
         this.updateBoids();
@@ -68,6 +69,7 @@ export class Simulation {
         renderer.drawQuad(boidLayoutFBO.writeFBO);
         boidLayoutProgram.use();
         boidLayoutProgram.setUniforms({
+            prevPositions: boidsFBO.writeFBO.texture,
             positions: boidsFBO.readFBO.texture,
             canvasSize: [size, size],
             pointSize: settings.pointSize,
@@ -131,21 +133,6 @@ export class Simulation {
         console.log('updateFluid')
         const { updateFluidProgram, boidLayoutProgram, copyProgram } = renderer.getPrograms();
         const { boidsFBO, boidLayoutFBO } = renderer.getFBOs();
-        // boidLayoutProgram.use();
-        // const size = Math.ceil(Math.sqrt(settings.numBoids));
-        // boidLayoutProgram.setUniforms({
-        //     boids: boidsFBO.readFBO.texture,
-        //     canvasSize: [size, size],
-        //     pointSize: settings.pointSize,
-        // });
-        // renderer.drawPoints(
-        //     boidLayoutFBO.writeFBO,
-        //     settings.numBoids,
-        // )
-        // boidLayoutFBO.swap();
-        // copyProgram.use()
-        // copyProgram.setTexture('tex', boidLayoutFBO.readFBO.texture, 0)
-        // renderer.drawQuad(null);
 
         updateFluidProgram.use();
         updateFluidProgram.setUniforms({

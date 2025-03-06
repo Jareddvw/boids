@@ -17,12 +17,12 @@ void main() {
     vec4 boid = texture(boidPositions, texCoord);
     vec4 fluidVelocity = texture(fluidVelocity, texCoord);
 
-    vec2 boidVelocity = boid.xy;
-    if (abs(boidVelocity.x) < 0.0001 && abs(boidVelocity.y) < 0.0001) {
+    vec2 boidAcceleration = boid.xy;
+    if (abs(boidAcceleration.x) < 0.0001 && abs(boidAcceleration.y) < 0.0001) {
         fragColor = fluidVelocity;
         return;
     }
-    vec2 newVelocity = fluidVelocity.xy + boidVelocity * 0.1;
+    vec2 newVelocity = fluidVelocity.xy - boidAcceleration * 5.0;
     fragColor = vec4(newVelocity, fluidVelocity.zw);
 }
 `

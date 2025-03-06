@@ -1,6 +1,6 @@
 import { drawBoidsFrag } from "../shaders/drawBoids.frag";
 import { drawBoidsVert } from "../shaders/drawBoids.vert";
-import { drawBoidVelocityFrag } from "../shaders/drawBoidVelocity.frag";
+import { drawBoidAccelerationFrag } from "../shaders/drawBoidAcceleration.frag";
 import { fillColorFrag } from "../shaders/fillColor.frag";
 import { passThroughFrag } from "../shaders/passThrough.frag";
 import { passThroughVert } from "../shaders/passThrough.vert";
@@ -109,7 +109,7 @@ export class Renderer {
         const updateFluidF = new Shader(gl, gl.FRAGMENT_SHADER, updateFluidFrag)
         const updateFluidProgram = new Program(gl, [passThroughV, updateFluidF])
 
-        const updateLayoutF = new Shader(gl, gl.FRAGMENT_SHADER, drawBoidVelocityFrag)
+        const updateLayoutF = new Shader(gl, gl.FRAGMENT_SHADER, drawBoidAccelerationFrag)
         const boidLayoutProgram = new Program(gl, [drawBoidsV, updateLayoutF])
 
         return {
