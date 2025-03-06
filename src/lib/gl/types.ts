@@ -20,7 +20,7 @@ export type FBORecord = {
     boidLayoutFBO: DoubleFBO,
 }
 
-export type SimulationSettings = {
+export interface SimulationSettings {
     numBoids: number,
     separationWeight: number,
     alignmentWeight: number,
@@ -33,4 +33,7 @@ export type SimulationSettings = {
     wallAvoidanceWeight: number,
     pointSize: number,
     wrap: boolean, // whether boids wrap around the edges
+    fluidWeight: number,
+    boidWeight: number,
+    fluidEnabled: boolean,
 }

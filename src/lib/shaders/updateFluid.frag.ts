@@ -10,6 +10,7 @@ precision highp sampler2D;
 in vec2 texCoord;
 uniform sampler2D boidPositions;
 uniform sampler2D fluidVelocity;
+uniform float boidWeight;
 
 out vec4 fragColor;
 
@@ -22,7 +23,7 @@ void main() {
         fragColor = fluidVelocity;
         return;
     }
-    vec2 newVelocity = fluidVelocity.xy - boidAcceleration * 5.0;
+    vec2 newVelocity = fluidVelocity.xy - boidAcceleration * boidWeight;
     fragColor = vec4(newVelocity, fluidVelocity.zw);
 }
 `

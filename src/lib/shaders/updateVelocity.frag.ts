@@ -8,6 +8,8 @@ precision highp sampler2D;
 
 in vec2 texCoord;
 uniform sampler2D boids;
+uniform sampler2D fluidVelocity;
+uniform float fluidWeight;
 uniform float deltaT;
 uniform float boidCount;
 uniform float separationWeight;
@@ -107,6 +109,10 @@ void main() {
         wallAvoidance.y = -sign(position.y - 0.5);
     }
     acceleration += wallAvoidance * wallAvoidanceWeight;
+
+    // Add fluid velocity
+    vec4 fluidVelocity = texture(fluidVelocity, texCoord);
+    acceleration += fluidVelocity.xy * fluidWeight;
 
     // Update velocity
     velocity += acceleration * deltaT;

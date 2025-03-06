@@ -33,6 +33,7 @@ html, body {
   height: 100%;
   overflow: hidden;
   display: flex;
+  gap: var(--spacing-lg);
   justify-content: center;
   align-items: center;
   background-color: var(--color-background);
@@ -51,9 +52,7 @@ canvas {
 }
 
 #controls {
-  position: fixed;
-  top: var(--spacing-lg);
-  left: var(--spacing-lg);
+  position: relative;
   background: var(--controls-background);
   padding: var(--controls-padding);
   border-radius: var(--controls-border-radius);
@@ -71,7 +70,36 @@ canvas {
   opacity: 0.8;
 }
 
+.control-tooltip {
+  position: relative;
+}
+
+.control-tooltip::before {
+  content: attr(data-tooltip);
+  position: absolute;
+  left: calc(100% + 10px);
+  top: 50%;
+  transform: translateY(-50%);
+  width: 200px;
+  padding: 8px;
+  border-radius: 4px;
+  background: var(--controls-background);
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease, visibility 0.2s ease;
+  pointer-events: none;
+  z-index: 1000;
+}
+
+.control-tooltip:hover::before {
+  opacity: 1;
+  visibility: visible;
+}
+
 label {
+  position: relative;
   display: flex;
   align-items: center;
   margin-bottom: var(--spacing-sm);

@@ -26,7 +26,7 @@
           <input type="range" id="numBoids" min="10" max="10000" value="64" step="10">
           <span class="value"></span>
         </label>
-        <label>
+        <label class="control-tooltip" data-tooltip="Size of each boid on screen.">
           Point Size:
           <input type="range" id="pointSize" min="1" max="10" value="4" step="0.5">
           <span class="value"></span>
@@ -35,17 +35,17 @@
 
       <div class="control-group">
         <h3>Weights</h3>
-        <label>
+        <label class="control-tooltip" data-tooltip="How strongly boids avoid getting too close to each other.">
           Separation:
           <input type="range" id="separationWeight" min="0" max="0.5" value="0.15" step="0.01">
           <span class="value"></span>
         </label>
-        <label>
+        <label class="control-tooltip" data-tooltip="How strongly boids match velocity with neighbors.">
           Alignment:
           <input type="range" id="alignmentWeight" min="0" max="0.5" value="0.1" step="0.01">
           <span class="value"></span>
         </label>
-        <label>
+        <label class="control-tooltip" data-tooltip="How strongly boids are attracted to the center of their neighbors.">
           Cohesion:
           <input type="range" id="cohesionWeight" min="0" max="0.5" value="0.15" step="0.01">
           <span class="value"></span>
@@ -54,17 +54,17 @@
 
       <div class="control-group">
         <h3>Vision & Predator</h3>
-        <label>
+        <label class="control-tooltip" data-tooltip="How far boids can see other boids.">
           Sight Radius:
           <input type="range" id="sightRadius" min="0.01" max="0.2" value="0.05" step="0.01">
           <span class="value"></span>
         </label>
-        <label>
+        <label class="control-tooltip" data-tooltip="How far boids can detect the predator (mouse cursor).">
           Predator Radius:
           <input type="range" id="predatorRadius" min="0.1" max="0.5" value="0.2" step="0.01">
           <span class="value"></span>
         </label>
-        <label>
+        <label class="control-tooltip" data-tooltip="How strongly boids avoid the predator.">
           Predator Weight:
           <input type="range" id="predatorWeight" min="0" max="0.5" value="0.1" step="0.01">
           <span class="value"></span>
@@ -73,19 +73,37 @@
 
       <div class="control-group">
         <h3>Wall Settings</h3>
-        <label>
+        <label class="control-tooltip" data-tooltip="How close boids need to get to walls before avoiding them (% of screen).">
           Wall Threshold:
           <input type="range" id="wallAvoidanceThreshold" min="0.05" max="0.3" value="0.15" step="0.01">
           <span class="value"></span>
         </label>
-        <label>
+        <label class="control-tooltip" data-tooltip="How strongly boids avoid walls.">
           Wall Weight:
           <input type="range" id="wallAvoidanceWeight" min="0" max="0.3" value="0.11" step="0.01">
           <span class="value"></span>
         </label>
-        <label>
+        <label class="control-tooltip" data-tooltip="When enabled, boids wrap around the screen when they hit an edge.">
           Wrap:
           <input type="checkbox" id="wrap">
+        </label>
+      </div>
+
+      <div class="control-group">
+        <h3>Fluid Interaction</h3>
+        <label class="control-tooltip" data-tooltip="Enable or disable fluid simulation entirely.">
+          Enable Fluid:
+          <input type="checkbox" id="fluidEnabled" checked>
+        </label>
+        <label class="control-tooltip" data-tooltip="How strongly the fluid affects boid movement.">
+          Fluid Weight:
+          <input type="range" id="fluidWeight" min="0" max="10" value="5" step="0.1">
+          <span class="value"></span>
+        </label>
+        <label class="control-tooltip" data-tooltip="How strongly boids affect fluid movement.">
+          Boid Weight:
+          <input type="range" id="boidWeight" min="0" max="10" value="3" step="0.1">
+          <span class="value"></span>
         </label>
       </div>
     </div>

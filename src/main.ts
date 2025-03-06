@@ -33,7 +33,7 @@ let deltaT = 0;
 
 const fluidSim = new FluidSim(canvas)
 fluidSim.updateSettings({
-    colorMode: ColorMode.BlackAndWhite,
+    colorMode: ColorMode.Rainbow,
     visField: 'velocity',
     callbacks: {
         postForce: [() => {
@@ -60,12 +60,16 @@ const defaultSettings: Partial<SimulationSettings> = {
     alignmentWeight: 0.1,
     cohesionWeight: 0.15,
     sightRadius: 0.05,
+    predatorPosition: [-1, -1],
     predatorRadius: 0.2,
     predatorWeight: 0.1,
-    wallAvoidanceThreshold: 0.12,
-    wallAvoidanceWeight: 0.15,
+    wallAvoidanceThreshold: 0.15,
+    wallAvoidanceWeight: 0.11,
     pointSize: 4,
     wrap: false,
+    fluidWeight: 0.2,
+    boidWeight: 3,
+    fluidEnabled: true,
 };
 
 // Animation state
@@ -86,6 +90,9 @@ const controls: Record<ControlId, HTMLInputElement> = {
     wallAvoidanceWeight: document.getElementById('wallAvoidanceWeight') as HTMLInputElement,
     pointSize: document.getElementById('pointSize') as HTMLInputElement,
     wrap: document.getElementById('wrap') as HTMLInputElement,
+    fluidWeight: document.getElementById('fluidWeight') as HTMLInputElement,
+    boidWeight: document.getElementById('boidWeight') as HTMLInputElement,
+    fluidEnabled: document.getElementById('fluidEnabled') as HTMLInputElement,
 } as const;
 
 Object.entries(defaultSettings).forEach(([id, value]) => {
@@ -163,7 +170,9 @@ const render = () => {
     fpsCounter.textContent = Math.round(fps).toString();
     deltaT = 2 / fps;
 
-    fluidSim.step(deltaT);
+    if (simulation.getSettings().fluidEnabled) {
+        fluidSim.step(deltaT);
+    }
     simulation.step(deltaT);
 
     animationFrameId = requestAnimationFrame(render);
@@ -241,3 +250,13 @@ canvas.onmouseleave = () => {
         predatorPosition: [-1, -1]
     });
 }
+
+// Add event listener for fluid toggle
+controls.fluidEnabled.addEventListener('input', () => {
+    const isEnabled = controls.fluidEnabled.checked;
+    simulation.updateSettings({ fluidEnabled: isEnabled });
+    if (!isEnabled) {
+        fluidSim.updateSettings({ reset: true });
+        fluidSim.step(deltaT);
+    }
+});
