@@ -70,10 +70,11 @@ const render = () => {
     if (controls.isPausedState()) {
         return;
     }
-
     const fps = getFPS();
-    fpsCounter.textContent = Math.round(fps).toString();
     deltaT = 2 / fps;
+    deltaT = Math.min(deltaT, 0.033)
+
+    fpsCounter.textContent = Math.round(fps).toString();
 
     if (simulation.getSettings().fluidEnabled) {
         fluidSim.step(deltaT);
